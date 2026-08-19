@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://YOUR_API_GATEWAY_URL/prod/book';
+const API_URL = '/api';
 const MEMBER_PROFILE_ID = 1129941;
 const MEMBER_EMAIL = 'rubenhnt@gmail.com';
 const MEMBER_NAME = 'Ruben Hernandez';
@@ -78,11 +78,11 @@ export default function App() {
         const isScheduled = typeof data === 'object' && data.status === 'scheduled';
         setLogs(prev => [
           ...prev,
-          { 
-            type: isScheduled ? 'accent' : 'success', 
-            text: isScheduled 
-              ? `[${response.status} OK] ⏰ AUTO-BOOKING SCHEDULED VIA AWS EVENTBRIDGE` 
-              : `[${response.status} ${response.statusText || 'OK'}] API Gateway Response:` 
+          {
+            type: isScheduled ? 'accent' : 'success',
+            text: isScheduled
+              ? `[${response.status} OK] ⏰ AUTO-BOOKING SCHEDULED VIA AWS EVENTBRIDGE`
+              : `[${response.status} ${response.statusText || 'OK'}] API Gateway Response:`
           },
           { type: 'muted', text: typeof data === 'object' ? JSON.stringify(data, null, 2) : data }
         ]);
