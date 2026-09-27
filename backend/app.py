@@ -113,7 +113,8 @@ def schedule_eventbridge_execution(event_config, open_time_utc, advance_days=7, 
     member_id = event_config.get("memberProfileId", 1129941)
     schedule_name = f"golf-autobook-{target_date}-{member_id}"
 
-    formatted_open_time = open_time_utc.strftime("%Y-%m-%dT%H:%M:%S")
+    early_trigger_time = open_time_utc - timedelta(minutes=2)
+    formatted_open_time = early_trigger_time.strftime("%Y-%m-%dT%H:%M:%S")
     schedule_expression = f"at({formatted_open_time})"
 
     # Stamp explicit EventBridge bypass flag in the scheduled payload
@@ -327,7 +328,22 @@ def run_booking_pipeline(event_config, context=None, session_token=None):
     headers = get_base_headers()
     headers["authorization"] = f"Bearer {token}"
 
-    target_date = event_config.get("targetDate", "2026-08-30")
+    if event_config.get("eventbridge_bypass"):
+        print("[PIPELINE] Woke up early. Waiting for exactly 5:59:59.800 AM CDT...", flush=True)
+        
+    while True:
+        now = datetime.now(ZoneInfo("America/Chicago"))
+        
+        # Fire 200 milliseconds before 6:00:00 AM to account for network travel time
+        if now.hour == 5 and now.minute == 59 and now.second == 59 and now.microsecond >= 800000:
+            print(f"[PIPELINE] 🚀 FIRING REQUEST AT {now.time()}", flush=True)
+            break
+        
+        # Sleep briefly to avoid maxing out Lambda CPU billing
+        time.sleep(0.05)
+
+    # target_date = event_config.get("targetDate", "2026-08-30")
+    target_date = event_config.get("targetDate", datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d"))
     club_group_id = event_config.get("golfClubGroupId", 8)
     member_profile_id = event_config.get("memberProfileId", 1129941)
     member_email = event_config.get("email", "rubenhnt@gmail.com")
