@@ -4,6 +4,7 @@ import time
 import uuid
 import traceback
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import requests
 
 try:
@@ -330,17 +331,16 @@ def run_booking_pipeline(event_config, context=None, session_token=None):
 
     if event_config.get("eventbridge_bypass"):
         print("[PIPELINE] Woke up early. Waiting for exactly 5:59:59.800 AM CDT...", flush=True)
-        
-    while True:
-        now = datetime.now(ZoneInfo("America/Chicago"))
-        
-        # Fire 200 milliseconds before 6:00:00 AM to account for network travel time
-        if now.hour == 5 and now.minute == 59 and now.second == 59 and now.microsecond >= 800000:
-            print(f"[PIPELINE] 🚀 FIRING REQUEST AT {now.time()}", flush=True)
-            break
-        
-        # Sleep briefly to avoid maxing out Lambda CPU billing
-        time.sleep(0.05)
+        while True:
+            now = datetime.now(ZoneInfo("America/Chicago"))
+            
+            # Fire 200 milliseconds before 6:00:00 AM (or immediately if already 6:00 AM+)
+            if (now.hour > 5) or (now.hour == 5 and now.minute == 59 and now.second == 59 and now.microsecond >= 800000):
+                print(f"[PIPELINE] 🚀 FIRING REQUEST AT {now.time()}", flush=True)
+                break
+            
+            # Sleep briefly to avoid maxing out Lambda CPU billing
+            time.sleep(0.05)
 
     # target_date = event_config.get("targetDate", "2026-08-30")
     target_date = event_config.get("targetDate", datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d"))
