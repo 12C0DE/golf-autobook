@@ -6,7 +6,8 @@ const MEMBER_EMAIL = 'rubenhnt@gmail.com';
 const MEMBER_NAME = 'Ruben Hernandez';
 
 export default function App() {
-  const [targetDate, setTargetDate] = useState('2026-08-30');
+  const today = new Date().toISOString().split('T')[0];
+  const [targetDate, setTargetDate] = useState(today);
   const [playerCount, setPlayerCount] = useState(2);
   const [selectedCourse, setSelectedCourse] = useState('ALL');
   const [earliestTime, setEarliestTime] = useState('07:00');
